@@ -6,6 +6,10 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
+
+import authRoutes from './routes/authRoutes.js';
+
+
 import dns from "node:dns/promises";
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
@@ -35,6 +39,9 @@ app.get('/api/auth/health', (req, res) => {
         time: new Date().toISOString() 
     });
 });
+
+// Route mounting
+app.use('/api/auth', authRoutes);
 
 // 5. Database Connection and Server Start
 const PORT = process.env.PORT || 5001;
