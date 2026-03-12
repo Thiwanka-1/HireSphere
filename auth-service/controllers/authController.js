@@ -2,16 +2,17 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 
 // Helper function to generate JWT and set HttpOnly Cookie
-const generateTokenAndSetCookie = (res, userId) => {
-    const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+const generateTokenAndSetCookie = (res, userId, userRole) => { // Added userRole parameter
+    // Pack both ID and Role into the token payload
+    const token = jwt.sign({ id: userId, role: userRole }, process.env.JWT_SECRET, {
         expiresIn: '30d'
     });
 
     res.cookie('jwt', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV !== 'development', // Use secure cookies in production
+        secure: process.env.NODE_ENV !== 'development',
         sameSite: 'strict',
-        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+        maxAge: 30 * 24 * 60 * 60 * 1000
     });
 };
 
@@ -44,7 +45,7 @@ export const registerUser = async (req, res) => {
         });
 
         if (user) {
-            generateTokenAndSetCookie(res, user._id);
+            generateTokenAndSetCookie(res, user._id, user.role);
             res.status(201).json({
                 _id: user._id,
                 name: user.name,
@@ -79,7 +80,7 @@ export const loginUser = async (req, res) => {
             return res.status(403).json({ message: 'Account deactivated' });
         }
 
-        generateTokenAndSetCookie(res, user._id);
+        generateTokenAndSetCookie(res, user._id, user.role);
 
         res.status(200).json({
             _id: user._id,

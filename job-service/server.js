@@ -6,6 +6,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
+import jobRoutes from './routes/jobRoutes.js';
+
 import dns from "node:dns/promises";
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
@@ -27,6 +29,9 @@ app.use(cors({
 app.get('/api/jobs/health', (req, res) => {
     res.status(200).json({ service: 'Job Listing Service', status: 'Operational' });
 });
+
+// Mount the routes right above your health check route
+app.use('/api/jobs', jobRoutes);
 
 const PORT = process.env.PORT || 5002;
 
