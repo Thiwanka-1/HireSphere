@@ -18,7 +18,8 @@ const applicationSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Pending', 'Reviewed', 'Interview Scheduled', 'Rejected'],
+        // ADDED 'Closed' to the allowed statuses
+        enum: ['Pending', 'Reviewed', 'Interview Scheduled', 'Rejected', 'Closed'],
         default: 'Pending'
     }
 }, {

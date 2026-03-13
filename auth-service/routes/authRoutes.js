@@ -28,7 +28,7 @@ router.route('/users')
     .get(protect, authorize('admin'), getAllUsers);
 
 router.route('/users/:id')
-    .get(protect, authorize('admin'), getUserById);
+    .get(protect, authorize('admin', 'employer'), getUserById);
 
 router.route('/users/:id/status')
     .put(protect, authorize('admin'), toggleUserStatus);

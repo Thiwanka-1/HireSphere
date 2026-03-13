@@ -1,5 +1,4 @@
 import Application from '../models/Application.js';
-// We will create this utility file in the next step to handle Firebase interactions
 import { uploadResumeToFirebase, deleteResumeFromFirebase } from '../utils/firebaseStorage.js';
 
 // @desc    Submit a new job application
@@ -13,10 +12,6 @@ export const submitApplication = async (req, res) => {
             return res.status(400).json({ message: 'Please upload a PDF resume' });
         }
 
-        // =====================================================================
-        // ⭐ INTER-SERVICE COMMUNICATION ⭐
-        // We must verify the job actually exists in the Job Service database
-        // =====================================================================
         try {
             const jobResponse = await fetch(`${process.env.JOB_SERVICE_URL}/${jobId}`);
             
@@ -28,13 +23,12 @@ export const submitApplication = async (req, res) => {
             return res.status(503).json({ message: 'Job Listing Service is currently unavailable' });
         }
 
-        // Upload the file buffer to Firebase Storage instead of local disk
         const resumeUrl = await uploadResumeToFirebase(req.file);
 
         const application = await Application.create({
             jobId,
             applicantId: req.user.id,
-            resumeUrl, // This is now a permanent public Firebase URL
+            resumeUrl, 
             coverLetter
         });
 
@@ -71,7 +65,7 @@ export const getApplicationsForJob = async (req, res) => {
     }
 };
 
-// @desc    Update application status (Pending -> Reviewed -> Interview -> Rejected)
+// @desc    Update application status (Pending -> Reviewed -> Interview -> Rejected/Closed)
 // @route   PUT /api/applications/:id/status
 // @access  Private (Employer/Admin only)
 export const updateApplicationStatus = async (req, res) => {
@@ -105,12 +99,10 @@ export const deleteApplication = async (req, res) => {
             return res.status(404).json({ message: 'Application not found' });
         }
 
-        // Security: Only the applicant or an admin can delete it
         if (application.applicantId !== req.user.id && req.user.role !== 'admin') {
             return res.status(403).json({ message: 'Not authorized to delete this application' });
         }
 
-        // Delete the PDF from Firebase to save cloud storage space!
         if (application.resumeUrl) {
             await deleteResumeFromFirebase(application.resumeUrl);
         }
@@ -122,25 +114,28 @@ export const deleteApplication = async (req, res) => {
     }
 };
 
-// @desc    Bulk delete applications based on status (e.g., 'Rejected')
+// @desc    Bulk delete applications based on status
 // @route   DELETE /api/applications/bulk
 // @access  Private (Employer/Admin only)
 export const bulkDeleteApplications = async (req, res) => {
     try {
-        const { jobId, status } = req.body; // e.g., { "jobId": "123", "status": "Rejected" }
+        const { jobId, status } = req.body; 
 
         if (!jobId || !status) {
             return res.status(400).json({ message: 'Please provide both jobId and status' });
         }
 
+        // Check if the user sent an array of statuses (e.g., ["Rejected", "Closed"]) or a single string
+        const statusQuery = Array.isArray(status) ? { $in: status } : status;
+
         // 1. Find all applications matching the criteria
-        const applicationsToDelete = await Application.find({ jobId, status });
+        const applicationsToDelete = await Application.find({ jobId, status: statusQuery });
 
         if (applicationsToDelete.length === 0) {
             return res.status(404).json({ message: 'No applications found matching those criteria' });
         }
 
-        // 2. Extract Firebase URLs and delete the physical files from the cloud
+        // 2. Extract Firebase URLs and delete physical files from the cloud
         const deleteFilePromises = applicationsToDelete.map(app => {
             if (app.resumeUrl) return deleteResumeFromFirebase(app.resumeUrl);
             return Promise.resolve();
@@ -148,7 +143,7 @@ export const bulkDeleteApplications = async (req, res) => {
         await Promise.all(deleteFilePromises);
 
         // 3. Delete the records from the MongoDB database
-        const result = await Application.deleteMany({ jobId, status });
+        const result = await Application.deleteMany({ jobId, status: statusQuery });
 
         res.status(200).json({ 
             message: `Successfully deleted ${result.deletedCount} applications and their resumes.` 
