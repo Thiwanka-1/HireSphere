@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # 1. MICROSERVICES
+  # ==========================================
+  auth-service:
+    build: ./auth-service
+    container_name: auth_service
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - NODE_ENV=development
+      # Connects to Atlas and creates the 'HireSphere_Auth' database
+      - MONGO_URI=${MONGO_ATLAS_BASE_URI}/HireSphere_Auth?appName=Cluster0
+      - JWT_SECRET=super_secret_development_key_change_in_production
+
+  job-service:
+    build: ./job-service
+    container_name: job_service
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+      - NODE_ENV=development
+      # Connects to Atlas and creates the 'HireSphere_Job' database
+      - MONGO_URI=${MONGO_ATLAS_BASE_URI}/HireSphere_Job?appName=Cluster0
+      - JWT_SECRET=super_secret_development_key_change_in_production
+
+  application-service:
+    build: ./application-service
+    container_name: application_service
+    ports:
+      - "5003:5003"
+    depends_on:
+      - job-service
+    environment:
+      - PORT=5003
+      - NODE_ENV=development
+      # Uses the exact Atlas database name you specified
+      - MONGO_URI=${MONGO_ATLAS_BASE_URI}/HireSphere_Application?appName=Cluster0
+      - JWT_SECRET=super_secret_development_key_change_in_production
+      # Internal Docker DNS: Pointing to the Job Service container
+      - JOB_SERVICE_URL=http://job-service:5002/api/jobs
+      # Firebase Credentials
+      - FIREBASE_API_KEY=${FIREBASE_API_KEY}
+      - FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET}
+      - FIREBASE_MESSAGING_SENDER_ID=${FIREBASE_MESSAGING_SENDER_ID}
+      - FIREBASE_APP_ID=${FIREBASE_APP_ID}
+
+  interview-service:
+    build: ./interview-service
+    container_name: interview_service
+    ports:
+      - "5004:5004"
+    depends_on:
+      - auth-service
+    environment:
+      - PORT=5004
+      - NODE_ENV=development
+      # Connects to Atlas and creates the 'HireSphere_Interview' database
+      - MONGO_URI=${MONGO_ATLAS_BASE_URI}/HireSphere_Interview?appName=Cluster0
+      - JWT_SECRET=super_secret_development_key_change_in_production
+      # Internal Docker DNS: Pointing to the Auth Service container
+      - AUTH_SERVICE_URL=http://auth-service:5001/api/auth
+      # Email Credentials
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+
+  # ==========================================
+  # 2. API GATEWAY
+  # ==========================================
+  api-gateway:
+    build: ./api-gateway
+    container_name: api_gateway
+    ports:
+      - "5000:5000"
+    depends_on:
+      - auth-service
+      - job-service
+      - application-service
+      - interview-service
+    environment:
+      - PORT=5000
+      - NODE_ENV=development
+      # Tell the gateway where the containers are on the internal network
+      - AUTH_SERVICE_URL=http://auth-service:5001
+      - JOB_SERVICE_URL=http://job-service:5002
+      - APP_SERVICE_URL=http://application-service:5003
+      - INTERVIEW_SERVICE_URL=http://interview-service:5004

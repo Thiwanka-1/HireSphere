@@ -14,8 +14,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import dns from "node:dns/promises";
-dns.setServers(["1.1.1.1", "8.8.8.8"]);
+// import dns from "node:dns/promises";
+// dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
 dotenv.config();
 

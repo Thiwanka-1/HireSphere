@@ -14,8 +14,8 @@ import applicationRoutes from './routes/applicationRoutes.js';
 import swaggerUi from 'swagger-ui-express';
 import fs from 'fs';
 
-import dns from "node:dns/promises";
-dns.setServers(["1.1.1.1", "8.8.8.8"]);
+// import dns from "node:dns/promises";
+// dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
 dotenv.config();
 
