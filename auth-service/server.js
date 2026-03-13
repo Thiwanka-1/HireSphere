@@ -6,10 +6,16 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
-
+// Route Imports
 import authRoutes from './routes/authRoutes.js';
 
+// Swagger Documentation Imports
+import swaggerUi from 'swagger-ui-express';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+// DNS Configuration
 import dns from "node:dns/promises";
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
@@ -20,15 +26,15 @@ dotenv.config();
 const app = express();
 
 // 3. Configure Middleware
-app.use(express.json()); // Parse incoming JSON payloads
-app.use(cookieParser()); // Parse cookies (crucial for our JWT strategy)
-app.use(helmet()); // Set secure HTTP headers
-app.use(morgan('dev')); // Log requests to the terminal for debugging
+app.use(express.json());
+app.use(cookieParser());
+app.use(helmet());
+app.use(morgan('dev'));
 
-// Configure CORS to allow requests from our future frontend
+// Configure CORS
 app.use(cors({
-    origin: 'http://localhost:5173', // Update this if your frontend runs on a different port
-    credentials: true // MANDATORY: Allows cookies to be sent cross-origin
+    origin: 'http://localhost:5173', 
+    credentials: true 
 }));
 
 // 4. Basic Health Check Route
@@ -40,10 +46,22 @@ app.get('/api/auth/health', (req, res) => {
     });
 });
 
-// Route mounting
+// 5. Mount Primary Routes
 app.use('/api/auth', authRoutes);
 
-// 5. Database Connection and Server Start
+// ==========================================
+// 6. SWAGGER API DOCUMENTATION SETUP
+// ==========================================
+// Read the swagger.json file dynamically using ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const swaggerDocument = JSON.parse(fs.readFileSync(path.join(__dirname, 'swagger.json'), 'utf8'));
+
+// Serve the interactive UI on the /api-docs endpoint
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// ==========================================
+
+// 7. Database Connection and Server Start
 const PORT = process.env.PORT || 5001;
 
 mongoose.connect(process.env.MONGO_URI)
@@ -51,9 +69,10 @@ mongoose.connect(process.env.MONGO_URI)
         console.log('✅ Connected to MongoDB (users_db)');
         app.listen(PORT, () => {
             console.log(`🚀 Auth Service is running on http://localhost:${PORT}`);
+            console.log(`📄 API Documentation available at http://localhost:${PORT}/api-docs`);
         });
     })
     .catch((error) => {
         console.error('❌ Failed to connect to MongoDB:', error.message);
-        process.exit(1); // Exit the process with failure
+        process.exit(1); 
     });

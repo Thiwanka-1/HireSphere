@@ -1,0 +1,121 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "HireSphere Interview API",
+    "version": "1.0.0",
+    "description": "API Documentation for the Interview Scheduling & Communication Microservice"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5004",
+      "description": "Development Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "jwt"
+      }
+    }
+  },
+  "paths": {
+    "/api/interviews": {
+      "post": {
+        "summary": "Schedule a new interview and send email invite",
+        "tags": ["Employer Actions"],
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "applicationId": { "type": "string" },
+                  "applicantId": { "type": "string" },
+                  "scheduledDate": { "type": "string", "format": "date-time" },
+                  "meetingLink": { "type": "string" }
+                },
+                "required": ["applicationId", "applicantId", "scheduledDate", "meetingLink"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Interview scheduled and email sent" },
+          "409": { "description": "Time conflict detected" }
+        }
+      }
+    },
+    "/api/interviews/employer": {
+      "get": {
+        "summary": "Get all interviews for logged-in employer",
+        "tags": ["Employer Actions"],
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": { "description": "List of employer's interviews" }
+        }
+      }
+    },
+    "/api/interviews/seeker": {
+      "get": {
+        "summary": "Get all interviews for logged-in seeker",
+        "tags": ["Seeker Actions"],
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": { "description": "List of seeker's interviews" }
+        }
+      }
+    },
+    "/api/interviews/{id}": {
+      "put": {
+        "summary": "Update interview (Reschedule, Pass, Fail) and trigger emails",
+        "tags": ["Employer Actions"],
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "scheduledDate": { "type": "string", "format": "date-time" },
+                  "meetingLink": { "type": "string" },
+                  "status": { "type": "string", "enum": ["Scheduled", "Rescheduled", "Completed", "Canceled", "Passed", "Failed"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Interview updated successfully" }
+        }
+      },
+      "delete": {
+        "summary": "Delete a single interview",
+        "tags": ["Management"],
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Interview deleted" }
+        }
+      }
+    },
+    "/api/interviews/bulk/cleanup": {
+      "delete": {
+        "summary": "Bulk delete all Canceled or Failed interviews for the employer",
+        "tags": ["Management"],
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": { "description": "Cleanup successful" }
+        }
+      }
+    }
+  }
+}

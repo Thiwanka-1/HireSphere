@@ -1,0 +1,156 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "HireSphere Auth & Identity API",
+    "version": "1.0.0",
+    "description": "Complete API Documentation for the Authentication Microservice"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5001",
+      "description": "Development Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "jwt"
+      }
+    }
+  },
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "summary": "Register a new user",
+        "tags": ["Public"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string" },
+                  "password": { "type": "string" },
+                  "role": { "type": "string", "enum": ["seeker", "employer", "admin"] },
+                  "companyName": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User registered successfully" }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Login user and receive HttpOnly cookie",
+        "tags": ["Public"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login successful" },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "summary": "Logout user and clear cookie",
+        "tags": ["Protected"],
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": { "description": "Logged out successfully" }
+        }
+      }
+    },
+    "/api/auth/profile": {
+      "get": {
+        "summary": "Get current logged-in user's profile",
+        "tags": ["Protected"],
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": { "description": "Profile data retrieved" },
+          "401": { "description": "Not authorized" }
+        }
+      },
+      "put": {
+        "summary": "Update current user's profile",
+        "tags": ["Protected"],
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string" },
+                  "companyName": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Profile updated" }
+        }
+      }
+    },
+    "/api/auth/users": {
+      "get": {
+        "summary": "Get all users",
+        "tags": ["Admin Only"],
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": { "description": "List of all users" },
+          "403": { "description": "Not authorized as admin" }
+        }
+      }
+    },
+    "/api/auth/users/{id}": {
+      "get": {
+        "summary": "Get a specific user by ID",
+        "tags": ["Admin & Employer Only"],
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "User data retrieved" },
+          "404": { "description": "User not found" }
+        }
+      }
+    },
+    "/api/auth/users/{id}/status": {
+      "put": {
+        "summary": "Toggle user active/deactivated status",
+        "tags": ["Admin Only"],
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Status updated" }
+        }
+      }
+    }
+  }
+}

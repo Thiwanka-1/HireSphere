@@ -10,6 +10,10 @@ import { fileURLToPath } from 'url';
 
 import applicationRoutes from './routes/applicationRoutes.js';
 
+// Swagger Documentation Imports
+import swaggerUi from 'swagger-ui-express';
+import fs from 'fs';
+
 import dns from "node:dns/promises";
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
@@ -31,12 +35,14 @@ app.use(cors({
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const swaggerDocument = JSON.parse(fs.readFileSync(path.join(__dirname, 'swagger.json'), 'utf8'));
 
 app.get('/api/applications/health', (req, res) => {
     res.status(200).json({ service: 'Application Service', status: 'Operational' });
 });
 
 app.use('/api/applications', applicationRoutes);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 const PORT = process.env.PORT || 5003;
 
@@ -45,6 +51,7 @@ mongoose.connect(process.env.MONGO_URI)
         console.log('✅ Connected to MongoDB (applications_db)');
         app.listen(PORT, () => {
             console.log(`🚀 Application Service is running on http://localhost:${PORT}`);
+            console.log(`📄 API Documentation available at http://localhost:${PORT}/api-docs`);
         });
     })
     .catch((error) => {

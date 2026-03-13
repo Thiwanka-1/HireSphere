@@ -1,0 +1,137 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "HireSphere Application API",
+    "version": "1.0.0",
+    "description": "API Documentation for the Job Application & File Upload Microservice"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5003",
+      "description": "Development Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "jwt"
+      }
+    }
+  },
+  "paths": {
+    "/api/applications": {
+      "post": {
+        "summary": "Submit a new job application with a PDF resume",
+        "tags": ["Seeker Actions"],
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "jobId": { "type": "string" },
+                  "coverLetter": { "type": "string" },
+                  "resume": { "type": "string", "format": "binary", "description": "PDF Resume File" }
+                },
+                "required": ["jobId", "resume"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Application submitted successfully" },
+          "400": { "description": "Missing file or already applied" },
+          "404": { "description": "Job not found in Job Service" }
+        }
+      }
+    },
+    "/api/applications/seeker": {
+      "get": {
+        "summary": "Get all applications for the logged-in seeker",
+        "tags": ["Seeker Actions"],
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": { "description": "List of seeker's applications" }
+        }
+      }
+    },
+    "/api/applications/job/{jobId}": {
+      "get": {
+        "summary": "Get all applications for a specific job",
+        "tags": ["Employer Actions"],
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "jobId", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "List of applications for the job" }
+        }
+      }
+    },
+    "/api/applications/{id}/status": {
+      "put": {
+        "summary": "Update application status",
+        "tags": ["Employer Actions"],
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": { "type": "string", "enum": ["Pending", "Reviewed", "Interview Scheduled", "Rejected"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Status updated successfully" }
+        }
+      }
+    },
+    "/api/applications/{id}": {
+      "delete": {
+        "summary": "Delete a single application and its resume from cloud storage",
+        "tags": ["Management"],
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Application deleted" }
+        }
+      }
+    },
+    "/api/applications/bulk": {
+      "delete": {
+        "summary": "Bulk delete applications by status",
+        "tags": ["Management"],
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "jobId": { "type": "string" },
+                  "status": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Bulk deletion successful" }
+        }
+      }
+    }
+  }
+}

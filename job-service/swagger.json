@@ -1,0 +1,126 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "HireSphere Job Listing API",
+    "version": "1.0.0",
+    "description": "Complete API Documentation for the Job Listing Microservice"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5002",
+      "description": "Development Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "jwt"
+      }
+    }
+  },
+  "paths": {
+    "/api/jobs": {
+      "get": {
+        "summary": "Get all active jobs (with optional search/filtering)",
+        "tags": ["Public"],
+        "parameters": [
+          { "in": "query", "name": "location", "schema": { "type": "string" } },
+          { "in": "query", "name": "search", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "List of jobs retrieved successfully" }
+        }
+      },
+      "post": {
+        "summary": "Create a new job posting",
+        "tags": ["Protected - Employer/Admin"],
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "description": { "type": "string" },
+                  "companyName": { "type": "string" },
+                  "location": { "type": "string" },
+                  "salaryRange": { "type": "string" },
+                  "jobType": { "type": "string" }
+                },
+                "required": ["title", "description", "companyName", "location"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Job created successfully" },
+          "403": { "description": "Not authorized to create jobs" }
+        }
+      }
+    },
+    "/api/jobs/employer/me": {
+      "get": {
+        "summary": "Get all jobs created by the logged-in employer",
+        "tags": ["Protected - Employer"],
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": { "description": "List of employer's jobs retrieved" }
+        }
+      }
+    },
+    "/api/jobs/{id}": {
+      "get": {
+        "summary": "Get a single job by ID",
+        "tags": ["Public"],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Job details retrieved" },
+          "404": { "description": "Job not found" }
+        }
+      },
+      "put": {
+        "summary": "Update a job",
+        "tags": ["Protected - Employer/Admin"],
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "salaryRange": { "type": "string" },
+                  "isActive": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Job updated successfully" },
+          "403": { "description": "Not authorized to modify this job" }
+        }
+      },
+      "delete": {
+        "summary": "Delete a job",
+        "tags": ["Protected - Employer/Admin"],
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Job removed successfully" }
+        }
+      }
+    }
+  }
+}
