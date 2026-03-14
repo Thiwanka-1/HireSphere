@@ -7,7 +7,9 @@ import {
     updateUserProfile,
     getAllUsers,
     getUserById,
-    toggleUserStatus
+    toggleUserStatus,
+    deleteUserProfile,
+    deleteUserById
 } from '../controllers/authController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 
@@ -32,5 +34,17 @@ router.route('/users/:id')
 
 router.route('/users/:id/status')
     .put(protect, authorize('admin'), toggleUserStatus);
+
+    // Private/Protected Routes (Must be logged in)
+router.route('/profile')
+    .get(protect, getUserProfile)
+    .put(protect, updateUserProfile)
+    .delete(protect, deleteUserProfile); // <-- ADD THIS (Self Deletion)
+
+// Admin Only Routes
+router.route('/users/:id')
+    .get(protect, authorize('admin', 'employer'), getUserById)
+    .put(protect, authorize('admin'), toggleUserStatus) // (Your existing toggle status route)
+    .delete(protect, authorize('admin'), deleteUserById); // <-- ADD THIS (Admin Deletion)
 
 export default router;
