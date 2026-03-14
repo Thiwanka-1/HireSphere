@@ -20,14 +20,19 @@ export const createJob = async (req, res) => {
 // @access  Public
 export const getJobs = async (req, res) => {
     try {
-        // Build a query object based on URL parameters (e.g., ?location=Remote)
         const query = { isActive: true };
         
-        if (req.query.location) query.location = req.query.location;
-        if (req.query.jobType) query.jobType = req.query.jobType;
+        // SECURITY FIX: Explicitly cast query parameters to strings 
+        // to prevent NoSQL Object Injection attacks (Improper Type Validation)
+        if (req.query.location) {
+            query.location = String(req.query.location);
+        }
+        if (req.query.jobType) {
+            query.jobType = String(req.query.jobType);
+        }
         if (req.query.search) {
             // Simple text search on the title
-            query.title = { $regex: req.query.search, $options: 'i' };
+            query.title = { $regex: String(req.query.search), $options: 'i' };
         }
 
         const jobs = await Job.find(query).sort('-createdAt');
@@ -69,7 +74,7 @@ export const updateJob = async (req, res) => {
         }
 
         job = await Job.findByIdAndUpdate(req.params.id, req.body, {
-            new: true, // Return the updated document
+            new: true, 
             runValidators: true
         });
 
@@ -95,7 +100,6 @@ export const deleteJob = async (req, res) => {
             return res.status(403).json({ message: 'User not authorized to delete this specific job' });
         }
 
-        // We use deleteOne instead of remove() for newer Mongoose versions
         await job.deleteOne();
 
         res.status(200).json({ message: 'Job removed successfully' });
@@ -109,9 +113,7 @@ export const deleteJob = async (req, res) => {
 // @access  Private (Employer only)
 export const getEmployerJobs = async (req, res) => {
     try {
-        // req.user.id is automatically populated by our protect middleware
         const jobs = await Job.find({ employerId: req.user.id }).sort('-createdAt');
-        
         res.status(200).json(jobs);
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch your jobs', error: error.message });
