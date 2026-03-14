@@ -20,14 +20,14 @@ export default function Sidebar({ isOpen, setIsOpen }) {
   } else if (user?.role === 'employer') {
     navItems = [
       { name: 'Dashboard', path: '/', icon: Home },
-      { name: 'My Jobs', path: '/jobs', icon: Briefcase },
+      { name: 'My Jobs', path: '/my-jobs', icon: Briefcase },
       { name: 'Applications', path: '/applications', icon: FileText },
       { name: 'Interviews', path: '/interviews', icon: Calendar },
     ];
   } else {
     // Default to Seeker
     navItems = [
-      { name: 'Discover Jobs', path: '/', icon: Home },
+      { name: 'Discover Jobs', path: '/jobs', icon: Home },
       { name: 'My Applications', path: '/applications', icon: FileText },
       { name: 'My Interviews', path: '/interviews', icon: Calendar },
     ];

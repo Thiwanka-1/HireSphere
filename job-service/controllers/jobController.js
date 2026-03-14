@@ -25,7 +25,8 @@ export const getJobs = async (req, res) => {
         // SECURITY FIX: Explicitly cast query parameters to strings 
         // to prevent NoSQL Object Injection attacks (Improper Type Validation)
         if (req.query.location) {
-            query.location = String(req.query.location);
+            // Now "remote" will match "Remote", "remote", and "Remote/Hybrid"
+            query.location = { $regex: String(req.query.location), $options: 'i' };
         }
         if (req.query.jobType) {
             query.jobType = String(req.query.jobType);

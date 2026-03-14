@@ -8,6 +8,12 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 
+import CreateJob from './pages/jobs/CreateJob';
+import JobListings from './pages/jobs/JobListings';
+import JobDetails from './pages/jobs/JobDetails';
+import MyJobs from './pages/jobs/MyJobs';
+import EditJob from './pages/jobs/EditJob';
+
 export default function App() {
   const { loading } = useAuth();
 
@@ -34,6 +40,33 @@ export default function App() {
         <Route path="/profile" element={
           <ProtectedRoute>
             <Layout><Profile /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/jobs/create" element={
+        <ProtectedRoute allowedRoles={['employer', 'admin']}>
+          <Layout><CreateJob /></Layout>
+        </ProtectedRoute>
+      } />
+        <Route path="/jobs" element={
+          <ProtectedRoute>
+            <Layout><JobListings /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/jobs/:id" element={
+          <ProtectedRoute>
+            <Layout><JobDetails /></Layout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/my-jobs" element={
+          <ProtectedRoute allowedRoles={['employer', 'admin']}>
+            <Layout><MyJobs /></Layout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/jobs/edit/:id" element={
+          <ProtectedRoute allowedRoles={['employer', 'admin']}>
+            <Layout><EditJob /></Layout>
           </ProtectedRoute>
         } />
         
