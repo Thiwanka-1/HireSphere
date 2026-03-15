@@ -6,7 +6,7 @@ services:
   # ==========================================
   auth-service:
     build: ./auth-service
-    image: gamithu/hiresphere-auth-service:latest
+    image: asdenuwan/hiresphere-auth-service:latest
     container_name: auth_service
     ports:
       - "5001:5001"
@@ -19,7 +19,7 @@ services:
 
   job-service:
     build: ./job-service
-    image: gamithu/hiresphere-job-service:latest
+    image: asdenuwan/hiresphere-job-service:latest
     container_name: job_service
     ports:
       - "5002:5002"
@@ -32,7 +32,7 @@ services:
 
   application-service:
     build: ./application-service
-    image: gamithu/hiresphere-application-service:latest
+    image: asdenuwan/hiresphere-application-service:latest
     container_name: application_service
     ports:
       - "5003:5003"
@@ -56,7 +56,7 @@ services:
 
   interview-service:
     build: ./interview-service
-    image: gamithu/hiresphere-interview-service:latest
+    image: asdenuwan/hiresphere-interview-service:latest
     container_name: interview_service
     ports:
       - "5004:5004"
@@ -81,7 +81,7 @@ services:
   # ==========================================
   api-gateway:
     build: ./api-gateway
-    image: gamithu/hiresphere-api-gateway:latest
+    image: asdenuwan/hiresphere-api-gateway:latest
     container_name: api_gateway
     ports:
       - "5000:5000"
