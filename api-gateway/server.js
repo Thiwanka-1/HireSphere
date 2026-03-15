@@ -17,7 +17,7 @@ app.use(morgan('dev'));
 app.get('/health', (req, res) => {
     res.status(200).json({ service: 'API Gateway', status: 'Operational' });
 });
-
+//new
 // ==========================================
 // 3. Define the Proxy Routing Rules (UPDATED)
 // ==========================================
