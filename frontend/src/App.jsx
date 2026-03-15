@@ -14,6 +14,8 @@ import JobDetails from './pages/jobs/JobDetails';
 import MyJobs from './pages/jobs/MyJobs';
 import EditJob from './pages/jobs/EditJob';
 
+import ManageJobs from './pages/admin/ManageJobs';
+
 export default function App() {
   const { loading } = useAuth();
 
@@ -67,6 +69,12 @@ export default function App() {
         <Route path="/jobs/edit/:id" element={
           <ProtectedRoute allowedRoles={['employer', 'admin']}>
             <Layout><EditJob /></Layout>
+          </ProtectedRoute>
+        } />
+        {/* ADMIN ROUTES */}
+        <Route path="/admin/jobs" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <Layout><ManageJobs /></Layout>
           </ProtectedRoute>
         } />
         
