@@ -106,7 +106,7 @@ export const logoutUser = (req, res) => {
     });
     res.status(200).json({ message: 'Logged out successfully' });
 };
-
+//add new
 // @desc    Get current user profile
 // @route   GET /api/auth/profile
 // @access  Private
