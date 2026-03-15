@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 
 dotenv.config();
-
+//new
 const app = express();
 app.disable('x-powered-by'); // Fixes Snyk Information Exposure
 app.use(cors({
