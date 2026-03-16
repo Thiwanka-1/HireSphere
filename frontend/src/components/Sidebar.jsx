@@ -13,13 +13,13 @@ export default function Sidebar({ isOpen, setIsOpen }) {
   
   if (user?.role === 'admin') {
     navItems = [
-      { name: 'Admin Dashboard', path: '/', icon: Shield },
+      { name: 'Admin Dashboard', path: '/dash', icon: Shield },
       { name: 'Manage Users', path: '/admin/users', icon: Users },
       { name: 'Manage Jobs', path: '/admin/jobs', icon: Briefcase },
     ];
   } else if (user?.role === 'employer') {
     navItems = [
-      { name: 'Dashboard', path: '/emp-dash', icon: Home },
+      { name: 'Dashboard', path: '/dash', icon: Home },
       { name: 'My Jobs', path: '/my-jobs', icon: Briefcase },
       { name: 'Applications', path: '/applications', icon: FileText },
       { name: 'Interviews', path: '/interviews', icon: Calendar },

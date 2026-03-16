@@ -1,15 +1,8 @@
 import express from 'express';
 import { 
-    registerUser, 
-    loginUser, 
-    logoutUser, 
-    getUserProfile, 
-    updateUserProfile,
-    getAllUsers,
-    getUserById,
-    toggleUserStatus,
-    deleteUserProfile,
-    deleteUserById
+    registerUser, loginUser, logoutUser, getUserProfile, updateUserProfile,
+    getAllUsers, getUserById, toggleUserStatus, deleteUserProfile, deleteUserById,
+    createAdmin // <-- Added new import
 } from '../controllers/authController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 
@@ -20,31 +13,24 @@ router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.post('/logout', logoutUser);
 
-// Private/Protected Routes (Must be logged in)
+// Private/Protected Routes (Self Management)
 router.route('/profile')
     .get(protect, getUserProfile)
-    .put(protect, updateUserProfile);
+    .put(protect, updateUserProfile)
+    .delete(protect, deleteUserProfile);
 
-// Admin Only Routes (Must be logged in AND have 'admin' role)
+// Admin Only Routes
+router.route('/admin')
+    .post(protect, authorize('admin'), createAdmin); // <-- The new route!
+
 router.route('/users')
     .get(protect, authorize('admin'), getAllUsers);
 
 router.route('/users/:id')
-    .get(protect, authorize('admin', 'employer'), getUserById);
+    .get(protect, authorize('admin', 'employer'), getUserById)
+    .delete(protect, authorize('admin'), deleteUserById);
 
 router.route('/users/:id/status')
     .put(protect, authorize('admin'), toggleUserStatus);
-
-    // Private/Protected Routes (Must be logged in)
-router.route('/profile')
-    .get(protect, getUserProfile)
-    .put(protect, updateUserProfile)
-    .delete(protect, deleteUserProfile); // <-- ADD THIS (Self Deletion)
-
-// Admin Only Routes
-router.route('/users/:id')
-    .get(protect, authorize('admin', 'employer'), getUserById)
-    .put(protect, authorize('admin'), toggleUserStatus) // (Your existing toggle status route)
-    .delete(protect, authorize('admin'), deleteUserById); // <-- ADD THIS (Admin Deletion)
 
 export default router;

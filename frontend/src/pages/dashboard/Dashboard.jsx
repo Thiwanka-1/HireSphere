@@ -1,5 +1,6 @@
 import { useAuth } from '../../context/AuthContext';
 import EmployerDashboard from './EmployerDashboard';
+import AdminDashboard from './AdminDashboard'; // <-- Import added
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -9,9 +10,9 @@ export default function Dashboard() {
   }
   
   if (user?.role === 'admin') {
-    return <div className="p-10 text-center font-bold">Admin Dashboard Coming Soon...</div>;
+    return <AdminDashboard />; // <-- Component connected
   }
 
-  // Seekers will eventually see the Home Page here, or their own dashboard
+  // Seekers will eventually see the Home Page here
   return <div className="p-10 text-center font-bold">Seeker Home Page Coming Soon...</div>;
 }

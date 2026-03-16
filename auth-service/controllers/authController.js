@@ -248,3 +248,37 @@ export const deleteUserById = async (req, res) => {
         res.status(500).json({ message: 'Error deleting user', error: error.message });
     }
 };
+
+// @desc    Create a new Admin account
+// @route   POST /api/auth/admin
+// @access  Private/Admin
+export const createAdmin = async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+
+        if (!name || !email || !password) {
+            return res.status(400).json({ message: 'Please provide all required fields' });
+        }
+
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return res.status(400).json({ message: 'User already exists with this email' });
+        }
+
+        // Create user and forcefully set role to admin
+        const admin = await User.create({
+            name, email, password, role: 'admin'
+        });
+
+        // NOTE: We do NOT generate a token or set a cookie here. 
+        // The current admin creating this account should remain logged in.
+        res.status(201).json({ 
+            message: 'Admin account created successfully',
+            _id: admin._id,
+            name: admin.name,
+            email: admin.email
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error during admin creation', error: error.message });
+    }
+};
