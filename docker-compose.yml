@@ -70,6 +70,7 @@ services:
       - JWT_SECRET=super_secret_development_key_change_in_production
       # Internal Docker DNS: Pointing to the Auth Service container
       - AUTH_SERVICE_URL=http://auth-service:5001/api/auth
+      - APP_SERVICE_URL=http://application-service:5003 # <--- ADD THIS LINE!
       # Email Credentials
       - EMAIL_HOST=${EMAIL_HOST}
       - EMAIL_PORT=${EMAIL_PORT}

@@ -22,7 +22,7 @@ export const scheduleInterview = async (req, res) => {
     try {
         const { applicationId, applicantId, scheduledDate, meetingLink } = req.body;
 
-        // 1. Conflict Prevention: Check if employer already has an interview at this exact time
+        // 1. Conflict Prevention
         const existingInterview = await Interview.findOne({ 
             employerId: req.user.id, 
             scheduledDate: new Date(scheduledDate) 
@@ -36,9 +36,23 @@ export const scheduleInterview = async (req, res) => {
             applicationId, applicantId, employerId: req.user.id, scheduledDate, meetingLink
         });
 
-        // 2. Fetch Email and Send
+        // 2. Fetch Email from Auth Service and Send (Integration 1)
         const email = await getApplicantEmail(applicantId, req.headers.cookie);
         if (email) await sendDynamicEmail(email, 'Scheduled', scheduledDate, meetingLink);
+
+        // 3. Update Application Status to "Interview Scheduled" (Integration 2)
+        try {
+            await fetch(`${process.env.APP_SERVICE_URL}/api/applications/${applicationId}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    cookie: req.headers.cookie // Pass the auth cookie securely
+                },
+                body: JSON.stringify({ status: 'Interview Scheduled' })
+            });
+        } catch (error) {
+            console.error('Failed to update Application Service status:', error);
+        }
 
         res.status(201).json(interview);
     } catch (error) {
@@ -69,6 +83,23 @@ export const updateInterview = async (req, res) => {
         if (status && ['Rescheduled', 'Canceled', 'Passed', 'Failed'].includes(status)) {
             const email = await getApplicantEmail(interview.applicantId, req.headers.cookie);
             if (email) await sendDynamicEmail(email, status, interview.scheduledDate, interview.meetingLink);
+            
+            // If the interview is totally finished, update the Application Status!
+            if (status === 'Passed' || status === 'Failed') {
+                const finalAppStatus = status === 'Passed' ? 'Closed' : 'Rejected';
+                try {
+                    await fetch(`${process.env.APP_SERVICE_URL}/api/applications/${interview.applicationId}/status`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            cookie: req.headers.cookie
+                        },
+                        body: JSON.stringify({ status: finalAppStatus })
+                    });
+                } catch (error) {
+                    console.error('Failed to update Application Service status:', error);
+                }
+            }
         }
 
         res.status(200).json(interview);
