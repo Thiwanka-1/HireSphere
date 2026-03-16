@@ -14,6 +14,8 @@ import JobDetails from './pages/jobs/JobDetails';
 import MyJobs from './pages/jobs/MyJobs';
 import EditJob from './pages/jobs/EditJob';
 
+import Applications from './pages/applications/Applications';
+
 import ManageJobs from './pages/admin/ManageJobs';
 
 export default function App() {
@@ -75,6 +77,11 @@ export default function App() {
         <Route path="/admin/jobs" element={
           <ProtectedRoute allowedRoles={['admin']}>
             <Layout><ManageJobs /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/applications" element={
+          <ProtectedRoute>
+            <Layout><Applications /></Layout>
           </ProtectedRoute>
         } />
         
