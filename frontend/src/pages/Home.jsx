@@ -47,7 +47,7 @@ export default function Home() {
             
             {/* DYNAMIC BUTTON: Changes based on login status */}
             {user ? (
-              <Link to="/dashboard" className="group inline-flex items-center justify-center px-8 py-4 font-bold text-slate-300 bg-slate-800/50 backdrop-blur-md border border-slate-700 rounded-2xl transition-all hover:bg-slate-700 hover:text-white">
+              <Link to="/profile" className="group inline-flex items-center justify-center px-8 py-4 font-bold text-slate-300 bg-slate-800/50 backdrop-blur-md border border-slate-700 rounded-2xl transition-all hover:bg-slate-700 hover:text-white">
                 <LayoutDashboard className="w-5 h-5 mr-2" /> Go to Dashboard
               </Link>
             ) : (
@@ -205,7 +205,7 @@ export default function Home() {
         </p>
         
         {user ? (
-          <Link to="/dashboard" className="inline-flex items-center px-8 py-4 font-bold text-white bg-indigo-600 rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/30 relative z-10">
+          <Link to="/profile" className="inline-flex items-center px-8 py-4 font-bold text-white bg-indigo-600 rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/30 relative z-10">
             Access Your Account <ArrowRight className="w-5 h-5 ml-2" />
           </Link>
         ) : (
