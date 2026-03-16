@@ -11,20 +11,19 @@ export default function EmployerApplications() {
   const [selectedJobId, setSelectedJobId] = useState('');
   
   const [applications, setApplications] = useState([]);
-  const [applicantsData, setApplicantsData] = useState({}); // Stores { id: { name, email } }
+  const [applicantsData, setApplicantsData] = useState({});
   
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
   const [isLoadingApps, setIsLoadingApps] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // 1. Fetch Employer's Jobs on load
   useEffect(() => {
     const fetchJobs = async () => {
       try {
         const response = await api.get('/jobs/employer/me');
         setJobs(response.data);
         if (response.data.length > 0) {
-          setSelectedJobId(response.data[0]._id); // Auto-select the first job
+          setSelectedJobId(response.data[0]._id);
         }
       } catch (error) {
         toast.error('Failed to load your jobs.');
@@ -35,19 +34,16 @@ export default function EmployerApplications() {
     fetchJobs();
   }, []);
 
-  // 2. Fetch Applications whenever the selected Job changes
   useEffect(() => {
     if (!selectedJobId) return;
 
     const fetchAppsAndUsers = async () => {
       setIsLoadingApps(true);
       try {
-        // Fetch applications from Application Service
         const appRes = await api.get(`/applications/job/${selectedJobId}`);
         const fetchedApps = appRes.data;
         setApplications(fetchedApps);
 
-        // Fetch user details from Auth Service (Microservice Integration!)
         const uniqueUserIds = [...new Set(fetchedApps.map(app => app.applicantId))];
         const usersDataMap = { ...applicantsData };
         
@@ -71,15 +67,12 @@ export default function EmployerApplications() {
     };
 
     fetchAppsAndUsers();
-  }, [selectedJobId]); // Runs every time the employer selects a new job from the dropdown
+  }, [selectedJobId]);
 
-  // 3. Update Status Handler
   const handleStatusUpdate = async (appId, newStatus) => {
     setIsUpdating(true);
     try {
       const response = await api.put(`/applications/${appId}/status`, { status: newStatus });
-      
-      // Update the UI instantly
       setApplications(applications.map(app => 
         app._id === appId ? { ...app, status: response.data.status } : app
       ));
@@ -91,21 +84,17 @@ export default function EmployerApplications() {
     }
   };
 
-  // 4. Bulk Delete Handler
   const handleBulkDelete = async () => {
     const isConfirmed = window.confirm('Are you sure you want to permanently delete all Rejected and Closed applications for this job?');
     if (!isConfirmed) return;
 
     try {
-      // Axios requires the 'data' property when sending a body in a DELETE request
       const response = await api.delete('/applications/bulk', {
         data: { 
           jobId: selectedJobId, 
           status: ['Rejected', 'Closed'] 
         }
       });
-      
-      // Remove deleted apps from the UI
       setApplications(applications.filter(app => !['Rejected', 'Closed'].includes(app.status)));
       toast.success(response.data.message || 'Applications cleaned up successfully.');
     } catch (error) {
@@ -119,7 +108,7 @@ export default function EmployerApplications() {
       case 'Interview Scheduled': return 'bg-green-100 text-green-800';
       case 'Rejected': return 'bg-red-100 text-red-800';
       case 'Closed': return 'bg-slate-100 text-slate-800';
-      default: return 'bg-amber-100 text-amber-800'; // Pending
+      default: return 'bg-amber-100 text-amber-800';
     }
   };
 
@@ -130,7 +119,6 @@ export default function EmployerApplications() {
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
       
-      {/* Header & Job Selector */}
       <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
@@ -156,22 +144,17 @@ export default function EmployerApplications() {
         </div>
       </div>
 
-      {/* Control Bar */}
       {applications.length > 0 && (
         <div className="flex justify-between items-center px-2">
           <p className="font-bold text-slate-700">
             Total Applicants: <span className="text-indigo-600">{applications.length}</span>
           </p>
-          <button 
-            onClick={handleBulkDelete}
-            className="flex items-center text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition"
-          >
+          <button onClick={handleBulkDelete} className="flex items-center text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition">
             <Trash2 className="w-4 h-4 mr-2" /> Clean Up Rejected
           </button>
         </div>
       )}
 
-      {/* Applications Grid */}
       <div className="space-y-4">
         {isLoadingApps ? (
           <div className="flex justify-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
@@ -189,11 +172,11 @@ export default function EmployerApplications() {
           <div className="grid grid-cols-1 gap-6">
             {applications.map((app) => {
               const applicant = applicantsData[app.applicantId] || { name: 'Loading...', email: 'Loading...' };
+              const isClosed = app.status === 'Closed';
 
               return (
-                <div key={app._id} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row gap-6 hover:shadow-md transition">
+                <div key={app._id} className={`bg-white rounded-2xl shadow-sm border ${isClosed ? 'border-slate-300 opacity-80' : 'border-slate-200'} p-6 flex flex-col md:flex-row gap-6 hover:shadow-md transition`}>
                   
-                  {/* Left: Applicant Info */}
                   <div className="flex-1 space-y-4">
                     <div className="flex justify-between items-start">
                       <div>
@@ -221,31 +204,26 @@ export default function EmployerApplications() {
                     </p>
                   </div>
 
-                  {/* Right: Actions */}
                   <div className="flex flex-col gap-3 min-w-[200px] border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6">
                     
-                    <a 
-                      href={app.resumeUrl} 
-                      target="_blank" 
-                      rel="noreferrer"
-                      className="flex items-center justify-center w-full bg-indigo-50 text-indigo-700 font-bold py-2.5 rounded-xl hover:bg-indigo-100 transition"
-                    >
+                    <a href={app.resumeUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center w-full bg-indigo-50 text-indigo-700 font-bold py-2.5 rounded-xl hover:bg-indigo-100 transition">
                       <ExternalLink className="w-4 h-4 mr-2" /> View Resume
                     </a>
 
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-slate-500 uppercase">Update Status</label>
+                      {/* FIX: Select is completely disabled if the app is Closed, and "Closed" is added back to options */}
                       <select 
                         value={app.status}
                         onChange={(e) => handleStatusUpdate(app._id, e.target.value)}
-                        disabled={isUpdating}
-                        className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-semibold cursor-pointer disabled:opacity-50"
+                        disabled={isUpdating || isClosed}
+                        className={`w-full px-3 py-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-semibold transition ${isClosed ? 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed' : 'bg-white border-slate-200 cursor-pointer disabled:opacity-50'}`}
                       >
                         <option value="Pending">Pending</option>
                         <option value="Reviewed">Reviewed</option>
                         <option value="Interview Scheduled" disabled>Interview Scheduled (Auto)</option>
                         <option value="Rejected">Rejected</option>
-                        {/* FIX: Removed the Closed option. It can only come from Interview Service. */}
+                        <option value="Closed" disabled>Closed (Auto)</option>
                       </select>
                     </div>
 

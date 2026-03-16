@@ -14,7 +14,10 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendDynamicEmail = async (candidateEmail, type, meetingDate, meetingLink) => {
-    const formattedDate = meetingDate ? new Date(meetingDate).toLocaleString() : '';
+    // FIX: Since the controller already formats the date to Sri Lankan time, 
+    // we just use it directly instead of trying to parse it with new Date() again!
+    const formattedDate = meetingDate || '';
+    
     let subject = '';
     let html = '';
 

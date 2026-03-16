@@ -15,8 +15,9 @@ import MyJobs from './pages/jobs/MyJobs';
 import EditJob from './pages/jobs/EditJob';
 
 import Applications from './pages/applications/Applications';
-
+import Interviews from './pages/interviews/Interviews';
 import ManageJobs from './pages/admin/ManageJobs';
+import Dashboard from './pages/dashboard/Dashboard';
 
 export default function App() {
   const { loading } = useAuth();
@@ -84,6 +85,16 @@ export default function App() {
             <Layout><Applications /></Layout>
           </ProtectedRoute>
         } />
+        <Route path="/interviews" element={
+          <ProtectedRoute>
+            <Layout><Interviews /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/emp-dash" element={
+        <ProtectedRoute>
+          <Layout><Dashboard /></Layout>
+        </ProtectedRoute>
+      } />
         
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

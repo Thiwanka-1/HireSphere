@@ -16,7 +16,6 @@ const getApplicantEmail = async (applicantId, cookieString) => {
     }
     return null;
 };
-
 // @desc    Schedule a new interview
 export const scheduleInterview = async (req, res) => {
     try {
@@ -36,17 +35,25 @@ export const scheduleInterview = async (req, res) => {
             applicationId, applicantId, employerId: req.user.id, scheduledDate, meetingLink
         });
 
-        // 2. Fetch Email from Auth Service and Send (Integration 1)
+        // 2. Fetch Email from Auth Service and Send (With Sri Lanka Timezone Fix)
         const email = await getApplicantEmail(applicantId, req.headers.cookie);
-        if (email) await sendDynamicEmail(email, 'Scheduled', scheduledDate, meetingLink);
+        if (email) {
+            // Format the UTC date to local Sri Lankan time for the email
+            const formattedLocalTime = new Date(scheduledDate).toLocaleString('en-US', { 
+                timeZone: 'Asia/Colombo', 
+                dateStyle: 'full', 
+                timeStyle: 'short' 
+            });
+            await sendDynamicEmail(email, 'Scheduled', formattedLocalTime, meetingLink);
+        }
 
-        // 3. Update Application Status to "Interview Scheduled" (Integration 2)
+        // 3. Update Application Status to "Interview Scheduled"
         try {
             await fetch(`${process.env.APP_SERVICE_URL}/api/applications/${applicationId}/status`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    cookie: req.headers.cookie // Pass the auth cookie securely
+                    cookie: req.headers.cookie 
                 },
                 body: JSON.stringify({ status: 'Interview Scheduled' })
             });
@@ -82,11 +89,24 @@ export const updateInterview = async (req, res) => {
         // Trigger Emails based on status change
         if (status && ['Rescheduled', 'Canceled', 'Passed', 'Failed'].includes(status)) {
             const email = await getApplicantEmail(interview.applicantId, req.headers.cookie);
-            if (email) await sendDynamicEmail(email, status, interview.scheduledDate, interview.meetingLink);
+            if (email) {
+                // Format the UTC date to local Sri Lankan time for the email
+                const formattedLocalTime = new Date(interview.scheduledDate).toLocaleString('en-US', { 
+                    timeZone: 'Asia/Colombo', 
+                    dateStyle: 'full', 
+                    timeStyle: 'short' 
+                });
+                await sendDynamicEmail(email, status, formattedLocalTime, interview.meetingLink);
+            }
             
-            // If the interview is totally finished, update the Application Status!
-            if (status === 'Passed' || status === 'Failed') {
-                const finalAppStatus = status === 'Passed' ? 'Closed' : 'Rejected';
+            // Sync Statuses with the Application Service
+            if (status === 'Passed' || status === 'Failed' || status === 'Canceled') {
+                let finalAppStatus = '';
+                
+                // FIX: Both Passed and Failed result in a "Closed" application status
+                if (status === 'Passed' || status === 'Failed') finalAppStatus = 'Closed';
+                if (status === 'Canceled') finalAppStatus = 'Reviewed'; // Revert back to reviewed
+                
                 try {
                     await fetch(`${process.env.APP_SERVICE_URL}/api/applications/${interview.applicationId}/status`, {
                         method: 'PUT',
@@ -148,7 +168,6 @@ export const deleteInterview = async (req, res) => {
 // @desc    Bulk delete canceled or failed interviews
 export const bulkCleanInterviews = async (req, res) => {
     try {
-        // Deletes all interviews for this employer that are Canceled or Failed
         const result = await Interview.deleteMany({
             employerId: req.user.id,
             status: { $in: ['Canceled', 'Failed'] }

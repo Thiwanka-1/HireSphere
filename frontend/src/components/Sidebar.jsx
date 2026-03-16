@@ -19,7 +19,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     ];
   } else if (user?.role === 'employer') {
     navItems = [
-      { name: 'Dashboard', path: '/', icon: Home },
+      { name: 'Dashboard', path: '/emp-dash', icon: Home },
       { name: 'My Jobs', path: '/my-jobs', icon: Briefcase },
       { name: 'Applications', path: '/applications', icon: FileText },
       { name: 'Interviews', path: '/interviews', icon: Calendar },
