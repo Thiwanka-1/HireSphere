@@ -87,8 +87,7 @@ export default function SeekerInterviews() {
             const data = enrichedData[interview._id] || { jobTitle: 'Loading...', companyName: 'Loading...' };
             const interviewDate = new Date(interview.scheduledDate);
             const isPast = interviewDate < new Date();
-            const isActive = interview.status === 'Scheduled' && !isPast;
-
+            const isActive = (interview.status === 'Scheduled' || interview.status === 'Rescheduled') && !isPast;
             return (
               <div key={interview._id} className={`bg-white rounded-3xl p-8 border-2 relative overflow-hidden transition-all ${isActive ? 'border-indigo-400 shadow-xl shadow-indigo-100' : 'border-slate-100 shadow-sm opacity-80'}`}>
                 
@@ -97,14 +96,14 @@ export default function SeekerInterviews() {
                 
                 <div className="flex justify-between items-start mb-6">
                   <div>
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-3 ${
-                      interview.status === 'Scheduled' && !isPast ? 'bg-indigo-100 text-indigo-700' :
-                      interview.status === 'Passed' ? 'bg-green-100 text-green-700' :
-                      interview.status === 'Failed' ? 'bg-red-100 text-red-700' :
-                      'bg-slate-200 text-slate-600'
-                    }`}>
-                      {isPast && interview.status === 'Scheduled' ? 'Meeting Ended' : interview.status}
-                    </span>
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-3 ${
+                  (interview.status === 'Scheduled' || interview.status === 'Rescheduled') && !isPast ? 'bg-indigo-100 text-indigo-700' :
+                  interview.status === 'Passed' ? 'bg-green-100 text-green-700' :
+                  interview.status === 'Failed' ? 'bg-red-100 text-red-700' :
+                  'bg-slate-200 text-slate-600'
+                }`}>
+                  {isPast && (interview.status === 'Scheduled' || interview.status === 'Rescheduled') ? 'Meeting Ended' : interview.status}
+                </span>
                     <h3 className="text-2xl font-bold text-slate-800 line-clamp-1">{data.jobTitle}</h3>
                     <p className="text-slate-500 font-bold flex items-center mt-1">
                       <Building className="w-4 h-4 mr-1.5 text-indigo-400" /> {data.companyName}
