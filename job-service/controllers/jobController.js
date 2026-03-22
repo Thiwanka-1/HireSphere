@@ -85,9 +85,9 @@ export const updateJob = async (req, res) => {
     }
 };
 
-// @desc    Delete (or deactivate) a job
+// @desc    Delete a job
 // @route   DELETE /api/jobs/:id
-// @access  Private (Employer/Admin only)
+// @access  Private (Employer who created it, or Admin)
 export const deleteJob = async (req, res) => {
     try {
         const job = await Job.findById(req.params.id);
@@ -99,6 +99,17 @@ export const deleteJob = async (req, res) => {
         // SECURITY CHECK: Ownership validation
         if (job.employerId !== req.user.id && req.user.role !== 'admin') {
             return res.status(403).json({ message: 'User not authorized to delete this specific job' });
+        }
+
+        // 🚀 TRIGGER MICROSERVICE INTEGRATION: Tell App Service to delete all applications for this job!
+        try {
+            await fetch(`${process.env.APP_SERVICE_URL}/job/cascade/${job._id}`, {
+                method: 'DELETE',
+                headers: { 'Cookie': req.headers.cookie } // Pass the auth cookie securely
+            });
+            console.log(`Cascade delete triggered for Job ID: ${job._id}`);
+        } catch (err) {
+            console.error('Service Communication Error:', err.message);
         }
 
         await job.deleteOne();
@@ -118,5 +129,15 @@ export const getEmployerJobs = async (req, res) => {
         res.status(200).json(jobs);
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch your jobs', error: error.message });
+    }
+};
+
+// @desc    Delete all jobs for a specific employer (Cascaded from Auth)
+export const deleteJobsByEmployer = async (req, res) => {
+    try {
+        await Job.deleteMany({ employerId: req.params.employerId });
+        res.status(200).json({ message: 'All employer jobs deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to cascade delete jobs', error: error.message });
     }
 };

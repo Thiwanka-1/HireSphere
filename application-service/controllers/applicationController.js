@@ -152,3 +152,44 @@ export const bulkDeleteApplications = async (req, res) => {
         res.status(500).json({ message: 'Failed to bulk delete applications', error: error.message });
     }
 };
+
+// @desc    Delete all applications for a specific seeker (Cascaded from Auth)
+export const deleteAppsByApplicant = async (req, res) => {
+    try {
+        const applicationsToDelete = await Application.find({ applicantId: req.params.applicantId });
+        
+        // 1. Delete all resumes from Firebase
+        const deleteFilePromises = applicationsToDelete.map(app => {
+            if (app.resumeUrl) return deleteResumeFromFirebase(app.resumeUrl);
+            return Promise.resolve();
+        });
+        await Promise.all(deleteFilePromises);
+
+        // 2. Delete database records
+        await Application.deleteMany({ applicantId: req.params.applicantId });
+        res.status(200).json({ message: 'All seeker applications and resumes deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to cascade delete applications', error: error.message });
+    }
+};
+
+// @desc    Delete all applications for a specific job (Cascaded from Job Service)
+export const deleteAppsByJob = async (req, res) => {
+    try {
+        const { jobId } = req.params;
+        const applicationsToDelete = await Application.find({ jobId });
+
+        // Delete all physical resumes from Firebase first
+        const deleteFilePromises = applicationsToDelete.map(app => {
+            if (app.resumeUrl) return deleteResumeFromFirebase(app.resumeUrl);
+            return Promise.resolve();
+        });
+        await Promise.all(deleteFilePromises);
+
+        // Delete the records from MongoDB
+        await Application.deleteMany({ jobId });
+        res.status(200).json({ message: 'All applications for this job were deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to cascade delete applications', error: error.message });
+    }
+};

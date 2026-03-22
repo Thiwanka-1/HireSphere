@@ -178,3 +178,17 @@ export const bulkCleanInterviews = async (req, res) => {
         res.status(500).json({ message: 'Bulk delete failed', error: error.message });
     }
 };
+
+// @desc    Delete all interviews associated with a user (employer or seeker)
+export const deleteInterviewsByUser = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        // Delete if the user is either the employer OR the applicant
+        await Interview.deleteMany({ 
+            $or: [{ employerId: userId }, { applicantId: userId }] 
+        });
+        res.status(200).json({ message: 'All associated interviews deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to cascade delete interviews', error: error.message });
+    }
+};

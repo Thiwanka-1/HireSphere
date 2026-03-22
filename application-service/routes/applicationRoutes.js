@@ -5,7 +5,9 @@ import {
     getApplicationsForJob,
     updateApplicationStatus,
     deleteApplication,       // <-- ADDED MISSING IMPORT
-    bulkDeleteApplications   // <-- ADDED MISSING IMPORT
+    bulkDeleteApplications,
+    deleteAppsByApplicant,
+    deleteAppsByJob  
 } from '../controllers/applicationController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 import { upload } from '../middleware/uploadMiddleware.js';
@@ -27,10 +29,11 @@ router.put('/:id/status', protect, authorize('employer', 'admin'), updateApplica
 
 // IMPORTANT: '/bulk' must come BEFORE '/:id' so Express doesn't confuse 'bulk' for an ID
 router.delete('/bulk', protect, authorize('employer', 'admin'), bulkDeleteApplications);
-
+router.delete('/job/cascade/:jobId', protect, authorize('employer', 'admin'), deleteAppsByJob);
 // ==========================================
 // Shared Delete Route (Seeker withdrawing or Admin overriding)
 // ==========================================
 router.delete('/:id', protect, authorize('seeker', 'admin'), deleteApplication);
+router.delete('/applicant/:applicantId', protect, authorize('seeker', 'admin'), deleteAppsByApplicant);
 
 export default router;

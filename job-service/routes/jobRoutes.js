@@ -5,7 +5,8 @@ import {
     getJobById, 
     updateJob, 
     deleteJob,
-    getEmployerJobs
+    getEmployerJobs,
+    deleteJobsByEmployer
 } from '../controllers/jobController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 
@@ -19,5 +20,5 @@ router.get('/employer/me', protect, authorize('employer'), getEmployerJobs); // 
 router.post('/', protect, authorize('employer', 'admin'), createJob);
 router.put('/:id', protect, authorize('employer', 'admin'), updateJob);
 router.delete('/:id', protect, authorize('employer', 'admin'), deleteJob);
-
+router.delete('/employer/:employerId', protect, authorize('employer', 'admin'), deleteJobsByEmployer);
 export default router;

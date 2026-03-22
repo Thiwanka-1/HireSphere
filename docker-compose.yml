@@ -16,6 +16,10 @@ services:
       # Connects to Atlas and creates the 'HireSphere_Auth' database
       - MONGO_URI=${MONGO_ATLAS_BASE_URI}/HireSphere_Auth?appName=Cluster0
       - JWT_SECRET=super_secret_development_key_change_in_production
+      # NEW: URLs for Cascading Deletes
+      - JOB_SERVICE_URL=http://job-service:5002/api/jobs
+      - APP_SERVICE_URL=http://application-service:5003/api/applications
+      - INTERVIEW_SERVICE_URL=http://interview-service:5004/api/interviews
 
   job-service:
     build: ./job-service
@@ -29,6 +33,8 @@ services:
       # Connects to Atlas and creates the 'HireSphere_Job' database
       - MONGO_URI=${MONGO_ATLAS_BASE_URI}/HireSphere_Job?appName=Cluster0
       - JWT_SECRET=super_secret_development_key_change_in_production
+      # NEW: URL for Cascading Delete
+      - APP_SERVICE_URL=http://application-service:5003/api/applications
 
   application-service:
     build: ./application-service
@@ -70,7 +76,7 @@ services:
       - JWT_SECRET=super_secret_development_key_change_in_production
       # Internal Docker DNS: Pointing to the Auth Service container
       - AUTH_SERVICE_URL=http://auth-service:5001/api/auth
-      - APP_SERVICE_URL=http://application-service:5003 # <--- ADD THIS LINE!
+      - APP_SERVICE_URL=http://application-service:5003 # Used for status updates
       # Email Credentials
       - EMAIL_HOST=${EMAIL_HOST}
       - EMAIL_PORT=${EMAIL_PORT}

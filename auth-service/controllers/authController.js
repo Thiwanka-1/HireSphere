@@ -200,24 +200,45 @@ export const toggleUserStatus = async (req, res) => {
     }
 };
 
+// Helper function to handle cross-service deletions
+const cascadeDeleteUserData = async (user, cookieString) => {
+    const headers = { 'Cookie': cookieString };
+
+    try {
+        if (user.role === 'employer') {
+            // Tell Job Service to delete jobs
+            fetch(`${process.env.JOB_SERVICE_URL}/employer/${user._id}`, { method: 'DELETE', headers }).catch(console.error);
+            // Tell Interview Service to delete interviews
+            fetch(`${process.env.INTERVIEW_SERVICE_URL}/user/${user._id}`, { method: 'DELETE', headers }).catch(console.error);
+            console.log(`Cascade delete triggered for Employer: ${user._id}`);
+        } 
+        else if (user.role === 'seeker') {
+            // Tell Application Service to delete applications & resumes
+            fetch(`${process.env.APP_SERVICE_URL}/applicant/${user._id}`, { method: 'DELETE', headers }).catch(console.error);
+            // Tell Interview Service to delete interviews
+            fetch(`${process.env.INTERVIEW_SERVICE_URL}/user/${user._id}`, { method: 'DELETE', headers }).catch(console.error);
+            console.log(`Cascade delete triggered for Seeker: ${user._id}`);
+        }
+    } catch (error) {
+        console.error('Failed to dispatch cascade delete events:', error);
+    }
+};
+
 // @desc    Delete user profile (Self-deletion)
 // @route   DELETE /api/auth/profile
 // @access  Private
 export const deleteUserProfile = async (req, res) => {
     try {
-        // req.user._id is completely secure because it comes from the verified JWT token
         const user = await User.findById(req.user._id);
 
         if (user) {
+            // TRIGGER MICROSERVICE INTEGRATION
+            await cascadeDeleteUserData(user, req.headers.cookie);
+
             await User.deleteOne({ _id: user._id });
             
-            // Destroy the cookie so they are logged out
-            res.cookie('jwt', '', {
-                httpOnly: true,
-                expires: new Date(0)
-            });
-            
-            res.status(200).json({ message: 'User account deleted successfully' });
+            res.cookie('jwt', '', { httpOnly: true, expires: new Date(0) });
+            res.status(200).json({ message: 'User account and all associated data deleted successfully' });
         } else {
             res.status(404).json({ message: 'User not found' });
         }
@@ -234,13 +255,15 @@ export const deleteUserById = async (req, res) => {
         const user = await User.findById(req.params.id);
         
         if (user) {
-            // Optional: Prevent admins from deleting themselves through this specific route
             if (user._id.toString() === req.user._id.toString()) {
                 return res.status(400).json({ message: 'You cannot delete yourself from the admin panel.' });
             }
 
+            // TRIGGER MICROSERVICE INTEGRATION
+            await cascadeDeleteUserData(user, req.headers.cookie);
+
             await User.deleteOne({ _id: user._id });
-            res.status(200).json({ message: 'User deleted successfully by Admin' });
+            res.status(200).json({ message: 'User and all associated data deleted successfully by Admin' });
         } else {
             res.status(404).json({ message: 'User not found' });
         }
