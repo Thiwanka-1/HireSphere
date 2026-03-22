@@ -17,9 +17,9 @@ services:
       - MONGO_URI=${MONGO_ATLAS_BASE_URI}/HireSphere_Auth?appName=Cluster0
       - JWT_SECRET=super_secret_development_key_change_in_production
       # NEW: URLs for Cascading Deletes
-      - JOB_SERVICE_URL=http://job-service:5002/api/jobs
-      - APP_SERVICE_URL=http://application-service:5003/api/applications
-      - INTERVIEW_SERVICE_URL=http://interview-service:5004/api/interviews
+      - JOB_SERVICE_URL=https://job-service.internal.agreeablewave-5261b6ec.centralindia.azurecontainerapps.io/api/jobs
+      - APP_SERVICE_URL=https://application-service.internal.agreeablewave-5261b6ec.centralindia.azurecontainerapps.io/api/applications
+      - INTERVIEW_SERVICE_URL=https://interview-service.internal.agreeablewave-5261b6ec.centralindia.azurecontainerapps.io/api/interviews
 
   job-service:
     build: ./job-service
@@ -34,7 +34,7 @@ services:
       - MONGO_URI=${MONGO_ATLAS_BASE_URI}/HireSphere_Job?appName=Cluster0
       - JWT_SECRET=super_secret_development_key_change_in_production
       # NEW: URL for Cascading Delete
-      - APP_SERVICE_URL=http://application-service:5003/api/applications
+      - APP_SERVICE_URL=https://application-service.internal.agreeablewave-5261b6ec.centralindia.azurecontainerapps.io/api/applications
 
   application-service:
     build: ./application-service
@@ -51,7 +51,7 @@ services:
       - MONGO_URI=${MONGO_ATLAS_BASE_URI}/HireSphere_Application?appName=Cluster0
       - JWT_SECRET=super_secret_development_key_change_in_production
       # Internal Docker DNS: Pointing to the Job Service container
-      - JOB_SERVICE_URL=http://job-service:5002/api/jobs
+      - JOB_SERVICE_URL=https://job-service.internal.agreeablewave-5261b6ec.centralindia.azurecontainerapps.io/api/jobs
       # Firebase Credentials
       - FIREBASE_API_KEY=${FIREBASE_API_KEY}
       - FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN}
@@ -75,8 +75,8 @@ services:
       - MONGO_URI=${MONGO_ATLAS_BASE_URI}/HireSphere_Interview?appName=Cluster0
       - JWT_SECRET=super_secret_development_key_change_in_production
       # Internal Docker DNS: Pointing to the Auth Service container
-      - AUTH_SERVICE_URL=http://auth-service:5001/api/auth
-      - APP_SERVICE_URL=http://application-service:5003 # Used for status updates
+      - AUTH_SERVICE_URL=https://auth-service.internal.agreeablewave-5261b6ec.centralindia.azurecontainerapps.io/api/auth
+      - APP_SERVICE_URL=https://application-service.internal.agreeablewave-5261b6ec.centralindia.azurecontainerapps.io # Used for status updates
       # Email Credentials
       - EMAIL_HOST=${EMAIL_HOST}
       - EMAIL_PORT=${EMAIL_PORT}
@@ -101,7 +101,7 @@ services:
       - PORT=5000
       - NODE_ENV=development
       # Tell the gateway where the containers are on the internal network
-      - AUTH_SERVICE_URL=http://auth-service:5001
-      - JOB_SERVICE_URL=http://job-service:5002
-      - APP_SERVICE_URL=http://application-service:5003
-      - INTERVIEW_SERVICE_URL=http://interview-service:5004
+      - AUTH_SERVICE_URL=https://auth-service.internal.agreeablewave-5261b6ec.centralindia.azurecontainerapps.io
+      - JOB_SERVICE_URL=https://job-service.internal.agreeablewave-5261b6ec.centralindia.azurecontainerapps.io
+      - APP_SERVICE_URL=https://application-service.internal.agreeablewave-5261b6ec.centralindia.azurecontainerapps.io
+      - INTERVIEW_SERVICE_URL=https://interview-service.internal.agreeablewave-5261b6ec.centralindia.azurecontainerapps.io
