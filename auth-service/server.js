@@ -33,7 +33,7 @@ app.use(morgan('dev'));
 
 // Configure CORS
 app.use(cors({
-    origin: 'http://localhost:5173', 
+    origin: ['http://localhost:5173', 'https://hire-sphere-jade.vercel.app'], 
     credentials: true 
 }));
 
