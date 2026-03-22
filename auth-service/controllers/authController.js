@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 
 // Helper function to generate JWT and set HttpOnly Cookie
+// Helper function to generate JWT and set HttpOnly Cookie
 const generateTokenAndSetCookie = (res, userId, userRole) => {
     const token = jwt.sign({ id: userId, role: userRole }, process.env.JWT_SECRET, {
         expiresIn: '30d'
@@ -9,8 +10,8 @@ const generateTokenAndSetCookie = (res, userId, userRole) => {
 
     res.cookie('jwt', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV !== 'development',
-        sameSite: 'strict',
+        secure: true,           // MUST be true for cross-origin (Vercel to Azure)
+        sameSite: 'none',       // MUST be 'none' to allow Vercel to save the Azure cookie
         maxAge: 30 * 24 * 60 * 60 * 1000
     });
 };
@@ -102,6 +103,8 @@ export const loginUser = async (req, res) => {
 export const logoutUser = (req, res) => {
     res.cookie('jwt', '', {
         httpOnly: true,
+        secure: true,       // Added
+        sameSite: 'none',   // Added
         expires: new Date(0)
     });
     res.status(200).json({ message: 'Logged out successfully' });
@@ -237,7 +240,13 @@ export const deleteUserProfile = async (req, res) => {
 
             await User.deleteOne({ _id: user._id });
             
-            res.cookie('jwt', '', { httpOnly: true, expires: new Date(0) });
+            // Inside deleteUserProfile, replace the res.cookie line with this:
+            res.cookie('jwt', '', { 
+                httpOnly: true, 
+                secure: true,       // Added
+                sameSite: 'none',   // Added
+                expires: new Date(0) 
+            });
             res.status(200).json({ message: 'User account and all associated data deleted successfully' });
         } else {
             res.status(404).json({ message: 'User not found' });
