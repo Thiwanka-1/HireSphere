@@ -9,9 +9,10 @@ dotenv.config();
 const app = express();
 app.disable('x-powered-by'); // Fixes Snyk Information Exposure
 app.use(cors({
-    origin: 'http://localhost:5173', 
-    credentials: true
+    origin: ['http://localhost:5173', 'https://hire-sphere-jade.vercel.app'], 
+    credentials: true 
 }));
+
 app.use(morgan('dev'));
 
 app.get('/health', (req, res) => {
